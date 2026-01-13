@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Commodity Prices</title>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>  <!-- Optional for exports -->
+    <style>
+        #container { height: 400px; min-width: 310px; }
+    </style>
+</head>
+<body>
+    <h1>Commodity Price Charts</h1>
+    
+    <label for="commodity">Commodity:</label>
+    <select id="commodity">
+        <option value="BTC">BTC</option>
+        <option value="XAU">Gold (XAU)</option>
+        <option value="XAG">Silver (XAG)</option>
+        <option value="XPD">Palladium (XPD)</option>
+        <option value="HG">Copper (HG)</option>
+    </select>
+    
+    <label for="currency">Currency:</label>
+    <select id="currency">
+        <option value="USD">USD</option>
+        <option value="GBP">GBP</option>
+        <option value="EUR">EUR</option>
+        <option value="CNY">CNY</option>
+        <option value="JPY">JPY</option>
+        <option value="RUB">RUB</option>
+    </select>
+    
+    <label for="period">Time Period:</label>
+    <select id="period">
+        <option value="1d">1 Day</option>
+        <option value="1w">1 Week</option>
+        <option value="1m">1 Month</option>
+        <option value="3m">3 Months</option>
+        <option value="6m">6 Months</option>
+        <option value="1y">1 Year</option>
+        <option value="2y">2 Years</option>
+        <option value="5y">5 Years</option>
+    </select>
+    
+    <button onclick="updateChart()">Update Chart</button>
+    
+    <div id="container"></div>
+    
+    <script>
+        let chart;
+        
+        function updateChart() {
+            const commodity = document.getElementById('commodity').value;
+            const currency = document.getElementById('currency').value;
+            const period = document.getElementById('period').value;
+            
+            fetch(`/api/data/${commodity}?currency=${currency}&period=${period}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (!chart) {
+                        chart = Highcharts.chart('container', {
+                            title: { text: `${commodity} Price in ${currency}` },
+                            xAxis: { type: 'datetime' },
+                            yAxis: { title: { text: 'Price' } },
+                            series: data.series,
+                            tooltip: { valueDecimals: 2 },
+                            legend: { enabled: false }
+                        });
+                    } else {
+                        chart.update({
+                            title: { text: `${commodity} Price in ${currency}` },
+                            series: data.series
+                        });
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+        
+        // Initial load
+        updateChart();
+    </script>
+</body>
+</html>
