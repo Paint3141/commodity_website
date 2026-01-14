@@ -2,10 +2,17 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import text
-import datetime  # For time ranges
+from sqlalchemy import create_engine,text
+from sqlalchemy.exc import SQLAlchemyError
+from dotenv import load_dotenv
+from datetime import date, timedelta
+import os
 
 app = FastAPI()
+
+load_dotenv()
+DATABASE_URL = os.getenv("DATABASE_URL")  # e.g., postgresql://user:pass@host/dbname
+engine = create_engine(DATABASE_URL)
 
 # Mount static files (put Highcharts JS here later)
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -17,43 +24,52 @@ templates = Jinja2Templates(directory="templates")
 def fetch_commodity_data(commodity: str, currency: str = "USD", days: int = 365):
     try:
         with engine.connect() as conn:
-            # Fetch commodity prices (assume table 'commodities' with date, commodity, price_usd)
-            query = text("""
-                SELECT fetched_at AS date_time, usd_price 
-                FROM commodityprice 
-                WHERE commodity = :commodity AND fetched_at >= :start_date 
-                ORDER BY fetched_at ASC
-            """)
-            start_date = datetime.date.today() - datetime.timedelta(days=days)
-            result = conn.execute(query, {"commodity": commodity, "start_date": start_date}).fetchall()
-            
-            data = [{"date": row[0].isoformat(), "price_usd": row[1]} for row in result]
-            
-            # If currency != USD, fetch latest rates (assume daily rates; use latest for simplicity)
-            if currency != "USD":
-                rate_query = text("""
-                    SELECT rate_vs_usd 
-                    FROM fxrate 
-                    WHERE currency = :currency 
-                    ORDER BY date DESC LIMIT 1
+            if currency == "USD":
+                # Simple case — no join needed
+                query = text("""
+                    SELECT c.fetched_at AS date, c.usd_price AS price
+                    FROM commodityprice c
+                    WHERE c.symbol = :commodity
+                      AND c.fetched_at >= :start_date
+                    ORDER BY c.fetched_at ASC
                 """)
-                rate_result = conn.execute(rate_query, {"currency": currency}).scalar()
-                if rate_result:
-                    # Assuming rate is target_currency per 1 USD (e.g., GBP per USD)
-                    # Convert: price_in_currency = price_usd * rate
-                    for item in data:
-                        item["price"] = item["price_usd"] * rate_result
-                    del item["price_usd"]  # Clean up
-                else:
-                    raise ValueError(f"No rate found for {currency}")
+                params = {"commodity": commodity, "start_date": date.today() - timedelta(days=days)}
             else:
-                for item in data:
-                    item["price"] = item["price_usd"]
-                    del item["price_usd"]
+                # Join on date for historical conversion
+                query = text("""
+                    SELECT 
+                        c.fetched_at AS date,
+                        c.usd_price * er.rate_vs_usd AS price
+                    FROM commodityprice c
+                    LEFT JOIN fxrate er 
+                        ON er.currency = :currency 
+                       AND CAST(c.fetched_at AS DATE) = CAST(er.fetched_at AS DATE)          -- exact date match
+                    WHERE c.symbol = :commodity
+                      AND c.fetched_at >= :start_date
+                    ORDER BY c.fetched_at ASC
+                """)
+                params = {
+                    "commodity": commodity,
+                    "currency": currency,
+                    "start_date": date.today() - timedelta(days=days)
+                }
+
+            result = conn.execute(query, params).fetchall()
             
-            return data
+            # Format for Highcharts: [[timestamp_ms or iso, value], ...]
+            series_data = []
+            for row in result:
+                dt = row[0]
+                price = float(row[1]) if row[1] is not None else None
+                # Use ISO string — Highcharts understands it
+                series_data.append([dt.isoformat(), price])
+
+            return {"series": [{"name": f"{commodity} in {currency}", "data": series_data}]}
+
     except SQLAlchemyError as e:
         raise RuntimeError(f"Database error: {str(e)}")
+    except Exception as e:
+        raise RuntimeError(f"Unexpected error: {str(e)}")
 
 # Main page
 @app.get("/", response_class=HTMLResponse)
@@ -61,9 +77,17 @@ async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 # API for data
+# @app.get("/api/data/{commodity}")
+# async def get_data(commodity: str, currency: str = "USD", period: str = "1y"):
+#     days_map = {"1d": 1, "1w": 7, "1m": 30, "3m": 90, "6m": 180, "1y": 365, "2y": 730, "5y": 1825}
+#     days = days_map.get(period, 365)
+#     data = fetch_commodity_data(commodity.upper(), currency.upper(), days)
+#     return {"series": [{"name": f"{commodity} in {currency}", "data": [[item["date"], item["price"]] for item in data]}]}
+
 @app.get("/api/data/{commodity}")
 async def get_data(commodity: str, currency: str = "USD", period: str = "1y"):
     days_map = {"1d": 1, "1w": 7, "1m": 30, "3m": 90, "6m": 180, "1y": 365, "2y": 730, "5y": 1825}
     days = days_map.get(period, 365)
-    data = fetch_commodity_data(commodity.upper(), currency.upper(), days)
-    return {"series": [{"name": f"{commodity} in {currency}", "data": [[item["date"], item["price"]] for item in data]}]}
+    
+    result = fetch_commodity_data(commodity.upper(), currency.upper(), days)
+    return result   # ← already has {"series": [{"name": ..., "data": [[ts, val], ...]}]}
