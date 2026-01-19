@@ -1,0 +1,27 @@
+<!-- templates/base.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}My Site{% endblock %}</title>
+    <!-- Common styles or scripts can go here -->
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <header>
+        <nav style="background-color: #f8f9fa; padding: 10px; border-bottom: 1px solid #dee2e6;">
+            <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="margin: 0;">My Precious Metals Site</h2>  <!-- Your header/title -->
+                <ul style="list-style: none; margin: 0; padding: 0; display: flex; gap: 20px;">
+                    <li><a href="/" style="text-decoration: none; color: #007bff;">Home</a></li>
+                    <li><a href="/cv" style="text-decoration: none; color: #007bff;">CV</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+    
+    <main style="max-width: 1200px; margin: 20px auto; padding: 20px;">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

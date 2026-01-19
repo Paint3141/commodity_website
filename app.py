@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import create_engine,text
+from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 from dotenv import load_dotenv
 from datetime import date, timedelta
@@ -14,7 +14,7 @@ load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")  # e.g., postgresql://user:pass@host/dbname
 engine = create_engine(DATABASE_URL)
 
-# Mount static files (put Highcharts JS here later)
+# Mount static files (put Highcharts JS here later, and cv.pdf)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Templates
@@ -71,19 +71,17 @@ def fetch_commodity_data(commodity: str, currency: str = "USD", days: int = 365)
     except Exception as e:
         raise RuntimeError(f"Unexpected error: {str(e)}")
 
-# Main page
+# Main page (Home)
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-# API for data
-# @app.get("/api/data/{commodity}")
-# async def get_data(commodity: str, currency: str = "USD", period: str = "1y"):
-#     days_map = {"1d": 1, "1w": 7, "1m": 30, "3m": 90, "6m": 180, "1y": 365, "2y": 730, "5y": 1825}
-#     days = days_map.get(period, 365)
-#     data = fetch_commodity_data(commodity.upper(), currency.upper(), days)
-#     return {"series": [{"name": f"{commodity} in {currency}", "data": [[item["date"], item["price"]] for item in data]}]}
+# CV page
+@app.get("/cv", response_class=HTMLResponse)
+async def cv(request: Request):
+    return templates.TemplateResponse("cv.html", {"request": request})
 
+# API for data
 @app.get("/api/data/{commodity}")
 async def get_data(commodity: str, currency: str = "USD", period: str = "1y"):
     days_map = {"1d": 1, "1w": 7, "1m": 30, "3m": 90, "6m": 180, "1y": 365, "2y": 730, "5y": 1825}
