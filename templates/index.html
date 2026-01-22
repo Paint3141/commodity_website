@@ -1,4 +1,4 @@
-<!-- templates/index.html -->
+<!-- templates/index.html (chart height increased for better view, classes updated) -->
 {% extends "base.html" %}
 
 {% block title %}Commodity Prices{% endblock %}
@@ -7,52 +7,128 @@
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/modules/exporting.js"></script>  <!-- Optional for exports -->
     <style>
-        #container { height: 400px; min-width: 310px; }
+        .chart-container { height: 500px; min-width: 310px; }
     </style>
 {% endblock %}
 
 {% block content %}
-    <h1>Commodity Price Charts</h1>
-    
-    <label for="commodity">Commodity:</label>
-    <select id="commodity">
-        <option value="BTC">BTC</option>
-        <option value="XAU">Gold (XAU)</option>
-        <option value="XAG">Silver (XAG)</option>
-        <option value="XPD">Palladium (XPD)</option>
-        <option value="HG">Copper (HG)</option>
-    </select>
-    
-    <label for="currency">Currency:</label>
-    <select id="currency">
-        <option value="USD">USD</option>
-        <option value="GBP">GBP</option>
-        <option value="EUR">EUR</option>
-        <option value="CNY">CNY</option>
-        <option value="JPY">JPY</option>
-        <option value="RUB">RUB</option>
-    </select>
-    
-    <label for="period">Time Period:</label>
-    <select id="period">
-        <option value="1d">1 Day</option>
-        <option value="1w">1 Week</option>
-        <option value="1m">1 Month</option>
-        <option value="3m">3 Months</option>
-        <option value="6m">6 Months</option>
-        <option value="1y">1 Year</option>
-        <option value="2y">2 Years</option>
-        <option value="5y">5 Years</option>
-    </select>
-    
-    <button onclick="updateChart()">Update Chart</button>
-    
-    <div id="container"></div>
+    <div class="card mb-5">
+        <div class="card-header">
+            <h2 class="card-title">Commodity Price Chart</h2>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label for="commodity" class="form-label">Commodity:</label>
+                    <select id="commodity" class="form-select">
+                        <option value="BTC">BTC</option>
+                        <option value="XAU">Gold (XAU)</option>
+                        <option value="XAG">Silver (XAG)</option>
+                        <option value="XPD">Palladium (XPD)</option>
+                        <option value="HG">Copper (HG)</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="currency" class="form-label">Currency:</label>
+                    <select id="currency" class="form-select">
+                        <option value="USD">USD</option>
+                        <option value="GBP">GBP</option>
+                        <option value="EUR">EUR</option>
+                        <option value="CNY">CNY</option>
+                        <option value="JPY">JPY</option>
+                        <option value="RUB">RUB</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="period" class="form-label">Time Period:</label>
+                    <select id="period" class="form-select">
+                        <option value="1d">1 Day</option>
+                        <option value="1w">1 Week</option>
+                        <option value="1m">1 Month</option>
+                        <option value="3m">3 Months</option>
+                        <option value="6m">6 Months</option>
+                        <option value="1y">1 Year</option>
+                        <option value="2y">2 Years</option>
+                        <option value="5y">5 Years</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button class="btn btn-primary me-2" onclick="updatePriceChart()">Update Chart</button>
+                    <button class="btn btn-secondary" id="logTogglePrice" onclick="toggleLog('price')">Toggle Log Scale</button>
+                </div>
+            </div>
+            <div id="price-container" class="chart-container"></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Commodity Ratio Chart</h2>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label for="commodity1" class="form-label">Numerator Commodity:</label>
+                    <select id="commodity1" class="form-select">
+                        <option value="BTC">BTC</option>
+                        <option value="XAU" selected="selected">Gold (XAU)</option>
+                        <option value="XAG">Silver (XAG)</option>
+                        <option value="XPD">Palladium (XPD)</option>
+                        <option value="HG">Copper (HG)</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="commodity2" class="form-label">Denominator Commodity:</label>
+                    <select id="commodity2" class="form-select">
+                        <option value="BTC">BTC</option>
+                        <option value="XAU">Gold (XAU)</option>
+                        <option value="XAG" selected="selected">Silver (XAG)</option>
+                        <option value="XPD">Palladium (XPD)</option>
+                        <option value="HG">Copper (HG)</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="ratioCurrency" class="form-label">Currency:</label>
+                    <select id="ratioCurrency" class="form-select">
+                        <option value="USD">USD</option>
+                        <option value="GBP">GBP</option>
+                        <option value="EUR">EUR</option>
+                        <option value="CNY">CNY</option>
+                        <option value="JPY">JPY</option>
+                        <option value="RUB">RUB</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="ratioPeriod" class="form-label">Time Period:</label>
+                    <select id="ratioPeriod" class="form-select">
+                        <option value="1d">1 Day</option>
+                        <option value="1w">1 Week</option>
+                        <option value="1m">1 Month</option>
+                        <option value="3m">3 Months</option>
+                        <option value="6m">6 Months</option>
+                        <option value="1y">1 Year</option>
+                        <option value="2y">2 Years</option>
+                        <option value="5y">5 Years</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <button class="btn btn-primary me-2" onclick="updateRatioChart()">Update Ratio Chart</button>
+                    <button class="btn btn-secondary" id="logToggleRatio" onclick="toggleLog('ratio')">Toggle Log Scale</button>
+                </div>
+            </div>
+            <div id="ratio-container" class="chart-container"></div>
+        </div>
+    </div>
     
     <script>
-        let chart;
+        let priceChart;
+        let ratioChart;
+        let isLogPrice = false;
+        let isLogRatio = false;
         
-        function updateChart() {
+        function updatePriceChart() {
             const commodity = document.getElementById('commodity').value;
             const currency = document.getElementById('currency').value;
             const period = document.getElementById('period').value;
@@ -60,18 +136,19 @@
             fetch(`/api/data/${commodity}?currency=${currency}&period=${period}`)
                 .then(response => response.json())
                 .then(data => {
-                    if (!chart) {
-                        chart = Highcharts.chart('container', {
+                    if (!priceChart) {
+                        priceChart = Highcharts.chart('price-container', {
                             title: { text: `${commodity} Price in ${currency}` },
                             xAxis: { type: 'datetime' },
-                            yAxis: { title: { text: 'Price' } },
+                            yAxis: { type: isLogPrice ? 'logarithmic' : 'linear', title: { text: 'Price' } },
                             series: data.series,
                             tooltip: { valueDecimals: 2 },
                             legend: { enabled: false }
                         });
                     } else {
-                        chart.update({
+                        priceChart.update({
                             title: { text: `${commodity} Price in ${currency}` },
+                            yAxis: { type: isLogPrice ? 'logarithmic' : 'linear' },
                             series: data.series
                         });
                     }
@@ -79,7 +156,77 @@
                 .catch(error => console.error('Error:', error));
         }
         
-        // Initial load
-        updateChart();
+        function updateRatioChart() {
+            const comm1 = document.getElementById('commodity1').value;
+            const comm2 = document.getElementById('commodity2').value;
+            const currency = document.getElementById('ratioCurrency').value;
+            const period = document.getElementById('ratioPeriod').value;
+            
+            if (comm1 === comm2) {
+                alert('Please select different commodities for ratio.');
+                return;
+            }
+            
+            fetch(`/api/data/${comm1},${comm2}?currency=${currency}&period=${period}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Compute ratio: series[0].data / series[1].data
+                    // Assume dates align; if not, need interpolation (simplified here)
+                    const ratioData = [];
+                    const len = Math.min(data.series[0].data.length, data.series[1].data.length);
+                    for (let i = 0; i < len; i++) {
+                        const ts = data.series[0].data[i][0];
+                        const val1 = data.series[0].data[i][1];
+                        const val2 = data.series[1].data[i][1];
+                        if (val1 !== null && val2 !== null && val2 !== 0) {
+                            ratioData.push([ts, val1 / val2]);
+                        }
+                    }
+                    
+                    const ratioSeries = [{ name: `${comm1}/${comm2} Ratio`, data: ratioData }];
+                    
+                    if (!ratioChart) {
+                        ratioChart = Highcharts.chart('ratio-container', {
+                            title: { text: `${comm1}/${comm2} Ratio in ${currency}` },
+                            xAxis: { type: 'datetime' },
+                            yAxis: { type: isLogRatio ? 'logarithmic' : 'linear', title: { text: 'Ratio' } },
+                            series: ratioSeries,
+                            tooltip: { valueDecimals: 4 },
+                            legend: { enabled: false }
+                        });
+                    } else {
+                        ratioChart.update({
+                            title: { text: `${comm1}/${comm2} Ratio in ${currency}` },
+                            yAxis: { type: isLogRatio ? 'logarithmic' : 'linear' },
+                            series: ratioSeries
+                        });
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+        
+        function toggleLog(chartType) {
+            if (chartType === 'price') {
+                isLogPrice = !isLogPrice;
+                document.getElementById('logTogglePrice').textContent = isLogPrice ? 'Switch to Linear Scale' : 'Toggle Log Scale';
+                if (priceChart) {
+                    priceChart.update({
+                        yAxis: { type: isLogPrice ? 'logarithmic' : 'linear' }
+                    });
+                }
+            } else if (chartType === 'ratio') {
+                isLogRatio = !isLogRatio;
+                document.getElementById('logToggleRatio').textContent = isLogRatio ? 'Switch to Linear Scale' : 'Toggle Log Scale';
+                if (ratioChart) {
+                    ratioChart.update({
+                        yAxis: { type: isLogRatio ? 'logarithmic' : 'linear' }
+                    });
+                }
+            }
+        }
+        
+        // Initial loads
+        updatePriceChart();
+        updateRatioChart();
     </script>
 {% endblock %}
