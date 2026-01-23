@@ -75,6 +75,76 @@ def fetch_commodity_data(commodities: list, currency: str = "USD", days: int = 3
     except Exception as e:
         raise RuntimeError(f"Unexpected error: {str(e)}")
 
+# Add this new function (place near fetch_commodity_data)
+def fetch_commodity_summary():
+    symbols_query = text("SELECT DISTINCT symbol FROM commodityprice ORDER BY symbol")
+    with engine.connect() as conn:
+        symbols = [row[0] for row in conn.execute(symbols_query).fetchall()]
+        
+        summary = []
+        today = date.today()
+        
+        for symbol in symbols:
+            # Latest price
+            latest_q = text("""
+                SELECT usd_price, fetched_at 
+                FROM commodityprice 
+                WHERE symbol = :symbol 
+                ORDER BY fetched_at DESC 
+                LIMIT 1
+            """)
+            latest = conn.execute(latest_q, {"symbol": symbol}).fetchone()
+            if not latest or latest.usd_price is None:
+                continue
+                
+            current_price = float(latest.usd_price)
+            current_date = latest.fetched_at.date()
+            
+            # Helper to get price on or before a target date
+            def get_price_before(target_date):
+                q = text("""
+                    SELECT usd_price 
+                    FROM commodityprice 
+                    WHERE symbol = :symbol 
+                      AND CAST(fetched_at AS DATE) <= :target_date
+                    ORDER BY fetched_at DESC 
+                    LIMIT 1
+                """)
+                row = conn.execute(q, {"symbol": symbol, "target_date": target_date}).fetchone()
+                return float(row.usd_price) if row and row.usd_price is not None else None
+            
+            # Calculate % changes
+            price_7d = get_price_before(today - timedelta(days=7))
+            price_1m = get_price_before(today - timedelta(days=30))
+            price_1y = get_price_before(today - timedelta(days=365))
+            
+            change_7d = round(((current_price - price_7d) / price_7d) * 100, 2) if price_7d else None
+            change_1m = round(((current_price - price_1m) / price_1m) * 100, 2) if price_1m else None
+            change_1y = round(((current_price - price_1y) / price_1y) * 100, 2) if price_1y else None
+            
+            # Price formatting
+            if symbol == "BTC":
+                price_display = round(current_price, 2)
+            else:
+                price_display = round(current_price, 4)   # Gold, Silver, Palladium, Copper
+                
+            summary.append({
+                "symbol": symbol,
+                "name": {
+                    "BTC": "Bitcoin",
+                    "XAU": "Gold",
+                    "XAG": "Silver",
+                    "XPD": "Palladium",
+                    "HG": "Copper"
+                }.get(symbol, symbol),
+                "price": price_display,
+                "change_7d": change_7d,
+                "change_1m": change_1m,
+                "change_1y": change_1y
+            })
+        
+        return summary
+
 # Main page (Home)
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
@@ -94,3 +164,12 @@ async def get_data(commodities: str, currency: str = "USD", period: str = "1y"):
     
     result = fetch_commodity_data(commodity_list, currency.upper(), days)
     return result   # ← {"series": [{"name": ..., "data": [[ts, val], ...]}, ...]}
+
+# Endpoint for commodity summary table side panel 
+@app.get("/api/summary")
+async def get_summary():
+    try:
+        data = fetch_commodity_summary()
+        return {"commodities": data}
+    except Exception as e:
+        return {"error": str(e)}
