@@ -1,18 +1,10 @@
-<!-- templates/index.html -->
-{% extends "base.html" %}
-
-{% block title %}Commodity Prices{% endblock %}
-
-{% block head %}
+{% extends "base.html" %}{% block title %}Commodity Prices{% endblock %}{% block head %}
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/modules/exporting.js"></script>
     <style>
         .chart-container { height: 500px; min-width: 310px; }
     </style>
-{% endblock %}
-
-{% block content %}
-<div class="row">
+{% endblock %}{% block content %}<div class="row">
     <!-- Main content (charts) -->
     <div class="col-lg-8">
         <div class="card mb-5">
@@ -64,100 +56,98 @@
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">Commodity Ratio Chart</h2>
-            </div>
-            <div class="card-body">
-                <div class="row mb-3">
-                    <div class="col-md-3">
-                        <label for="commodity1" class="form-label">Numerator Commodity:</label>
-                        <select id="commodity1" class="form-select">
-                            <option value="BTC">BTC</option>
-                            <option value="XAU" selected="selected">Gold (XAU)</option>
-                            <option value="XAG">Silver (XAG)</option>
-                            <option value="XPD">Palladium (XPD)</option>
-                            <option value="HG">Copper (HG)</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="commodity2" class="form-label">Denominator Commodity:</label>
-                        <select id="commodity2" class="form-select">
-                            <option value="BTC">BTC</option>
-                            <option value="XAU">Gold (XAU)</option>
-                            <option value="XAG" selected="selected">Silver (XAG)</option>
-                            <option value="XPD">Palladium (XPD)</option>
-                            <option value="HG">Copper (HG)</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="ratioCurrency" class="form-label">Currency:</label>
-                        <select id="ratioCurrency" class="form-select">
-                            <option value="USD">USD</option>
-                            <option value="GBP">GBP</option>
-                            <option value="EUR">EUR</option>
-                            <option value="CNY">CNY</option>
-                            <option value="JPY">JPY</option>
-                            <option value="RUB">RUB</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="ratioPeriod" class="form-label">Time Period:</label>
-                        <select id="ratioPeriod" class="form-select">
-                            <option value="1d">1 Day</option>
-                            <option value="1w">1 Week</option>
-                            <option value="1m">1 Month</option>
-                            <option value="3m">3 Months</option>
-                            <option value="6m">6 Months</option>
-                            <option value="1y">1 Year</option>
-                            <option value="2y">2 Years</option>
-                            <option value="5y">5 Years</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="row mb-3">
-                    <div class="col-md-12">
-                        <button class="btn btn-primary me-2" onclick="updateRatioChart()">Update Ratio Chart</button>
-                        <button class="btn btn-secondary" id="logToggleRatio" onclick="toggleLog('ratio')">Toggle Log Scale</button>
-                    </div>
-                </div>
-                <div id="ratio-container" class="chart-container"></div>
-            </div>
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Commodity Ratio Chart</h2>
         </div>
-    </div>
-
-    <!-- Sidebar -->
-    <div class="col-lg-4">
-        <div class="sticky-top" style="top: 24px;">
-            <div class="card">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">Commodity Overview (USD)</h5>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label for="commodity1" class="form-label">Numerator Commodity:</label>
+                    <select id="commodity1" class="form-select">
+                        <option value="BTC">BTC</option>
+                        <option value="XAU" selected="selected">Gold (XAU)</option>
+                        <option value="XAG">Silver (XAG)</option>
+                        <option value="XPD">Palladium (XPD)</option>
+                        <option value="HG">Copper (HG)</option>
+                    </select>
                 </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Commodity</th>
-                                    <th>Price</th>
-                                    <th>7d</th>
-                                    <th>1m</th>
-                                    <th>1y</th>
-                                </tr>
-                            </thead>
-                            <tbody id="commodity-table">
-                                <!-- Filled by JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="col-md-3">
+                    <label for="commodity2" class="form-label">Denominator Commodity:</label>
+                    <select id="commodity2" class="form-select">
+                        <option value="BTC">BTC</option>
+                        <option value="XAU">Gold (XAU)</option>
+                        <option value="XAG" selected="selected">Silver (XAG)</option>
+                        <option value="XPD">Palladium (XPD)</option>
+                        <option value="HG">Copper (HG)</option>
+                    </select>
                 </div>
-                <div class="card-footer text-muted small">
-                    Prices loaded on page refresh • USD
+                <div class="col-md-3">
+                    <label for="ratioCurrency" class="form-label">Currency:</label>
+                    <select id="ratioCurrency" class="form-select">
+                        <option value="USD">USD</option>
+                        <option value="GBP">GBP</option>
+                        <option value="EUR">EUR</option>
+                        <option value="CNY">CNY</option>
+                        <option value="JPY">JPY</option>
+                        <option value="RUB">RUB</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="ratioPeriod" class="form-label">Time Period:</label>
+                    <select id="ratioPeriod" class="form-select">
+                        <option value="1d">1 Day</option>
+                        <option value="1w">1 Week</option>
+                        <option value="1m">1 Month</option>
+                        <option value="3m">3 Months</option>
+                        <option value="6m">6 Months</option>
+                        <option value="1y">1 Year</option>
+                        <option value="2y">2 Years</option>
+                        <option value="5y">5 Years</option>
+                    </select>
                 </div>
             </div>
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <button class="btn btn-primary me-2" onclick="updateRatioChart()">Update Ratio Chart</button>
+                    <button class="btn btn-secondary" id="logToggleRatio" onclick="toggleLog('ratio')">Toggle Log Scale</button>
+                </div>
+            </div>
+            <div id="ratio-container" class="chart-container"></div>
         </div>
     </div>
 </div>
+
+<!-- Sidebar -->
+<div class="col-lg-4">
+    <div class="sticky-top" style="top: 24px;">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Commodity Overview (USD)</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Commodity</th>
+                                <th>Price</th>
+                                <th>7d</th>
+                                <th>1m</th>
+                            </tr>
+                        </thead>
+                        <tbody id="commodity-table">
+                            <!-- Filled by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer text-muted small">
+                Prices loaded on page refresh • USD
+            </div>
+        </div>
+    </div>
+</div></div>
 
 <script>
     let priceChart;
@@ -286,19 +276,12 @@
                         </span>` 
                         : '-';
                     
-                    const ch1y = item.change_1y !== null 
-                        ? `<span class="${item.change_1y >= 0 ? 'text-success' : 'text-danger'}">
-                            ${item.change_1y >= 0 ? '+' : ''}${item.change_1y}%
-                        </span>` 
-                        : '-';
-                    
                     html += `
                         <tr>
                             <td><strong>${item.name}</strong> <small class="text-muted">(${item.symbol})</small></td>
                             <td class="text-end fw-medium">$${price}</td>
                             <td class="text-end">${ch7}</td>
                             <td class="text-end">${ch1m}</td>
-                            <td class="text-end">${ch1y}</td>
                         </tr>`;
                 });
                 
@@ -315,3 +298,4 @@
     });
 </script>
 {% endblock %}
+
