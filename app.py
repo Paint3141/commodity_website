@@ -135,6 +135,7 @@ def fetch_commodity_summary():
                     "XAU": "Gold",
                     "XAG": "Silver",
                     "XPD": "Palladium",
+                    "XPT": "Platinum",
                     "HG": "Copper"
                 }.get(symbol, symbol),
                 "price": price_display,
